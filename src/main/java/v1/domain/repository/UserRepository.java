@@ -1,6 +1,6 @@
-package SpringJWT.JwtTest.repository;
+package v1.domain.repository;
 
-import SpringJWT.JwtTest.entity.User;
+import v1.domain.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

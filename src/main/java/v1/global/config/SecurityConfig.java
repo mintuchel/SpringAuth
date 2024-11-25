@@ -1,7 +1,7 @@
-package SpringJWT.JwtTest.config;
+package v1.global.config;
 
-import SpringJWT.JwtTest.jwt.JWTUtil;
-import SpringJWT.JwtTest.jwt.LoginFilter;
+import v1.global.jwt.JWTUtil;
+import v1.global.jwt.LoginFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;

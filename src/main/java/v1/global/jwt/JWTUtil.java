@@ -1,4 +1,4 @@
-package SpringJWT.JwtTest.jwt;
+package v1.global.jwt;
 
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Value;

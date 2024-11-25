@@ -1,4 +1,4 @@
-package SpringJWT.JwtTest.entity;
+package v1.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

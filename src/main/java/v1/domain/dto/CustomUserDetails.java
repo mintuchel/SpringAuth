@@ -1,6 +1,6 @@
-package SpringJWT.JwtTest.dto;
+package v1.domain.dto;
 
-import SpringJWT.JwtTest.entity.User;
+import v1.domain.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

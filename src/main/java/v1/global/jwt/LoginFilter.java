@@ -1,6 +1,6 @@
-package SpringJWT.JwtTest.jwt;
+package v1.global.jwt;
 
-import SpringJWT.JwtTest.dto.CustomUserDetails;
+import v1.domain.dto.CustomUserDetails;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -54,7 +54,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         // 꺼낸 값을 이용하여 인증을 진행
         // Authentication Filter가 Authentication Manager라는 친구에게 username, password를 던져줘서 인증을 받을건데
         // 이때 내부적으로 DTO처럼 만들어서 보내줌
-        // 그 바구니가 이거임
+        // 그 바구니가 authToken 임
         // 여기서 authroities 는 ??
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(username, password, null);
 

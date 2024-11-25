@@ -1,8 +1,8 @@
-package SpringJWT.JwtTest.service;
+package v1.domain.service;
 
-import SpringJWT.JwtTest.dto.JoinDTO;
-import SpringJWT.JwtTest.entity.User;
-import SpringJWT.JwtTest.repository.UserRepository;
+import v1.domain.dto.JoinDTO;
+import v1.domain.entity.User;
+import v1.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
