@@ -4,6 +4,7 @@ import v1.domain.dto.CustomUserDetails;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -25,19 +26,19 @@ import java.util.Iterator;
 // 커스텀을 진행해야함
 
 // 이렇게 만든 필터를 등록을 해줘야함
-// SecurityConfig 인 설정정보에 등록해주면 됨
+// SecurityConfig 인 @Configuration 클래스에 등록해주면 됨
 
 // UsernamePasswordAuthenticationFilter는 인증을 진행할때 아이디, 패스워드를 파싱하여 인증 요청을 위임하는 필터
 // Login을 시도하면 인증을 위한 Token을 생성 한 후 인증을 다른 쪽에 위임하는 역할을 하는 필터
-public class LoginFilter extends UsernamePasswordAuthenticationFilter {
+public class CustomLoginFilter extends UsernamePasswordAuthenticationFilter {
 
     // 검증을 위임할 녀석
     // Filter 는 id, pw를 추출하여 토큰으로 만들어 얘한테 검증이라는 행위를 위임함
     private final AuthenticationManager authenticationManager;
 
-    private final JWTUtil jwtUtil;
+    private final JwtUtil jwtUtil;
 
-    public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil){
+    public CustomLoginFilter(AuthenticationManager authenticationManager, JwtUtil jwtUtil){
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
     }

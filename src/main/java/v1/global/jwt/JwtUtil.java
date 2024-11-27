@@ -12,12 +12,12 @@ import java.util.Date;
 // JWT 를 생성하고 검증하고 만드는 Util 클래스
 
 @Component
-public class JWTUtil {
+public class JwtUtil {
     // 객체 키 클래스가 있음
     private SecretKey secretKey;
 
     // 객체 키로 변환시켜줘야함
-    public JWTUtil(@Value("${spring.jwt.secret}") String secret){
+    public JwtUtil(@Value("${spring.jwt.secret}") String secret){
         this.secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), Jwts.SIG.HS256.key().build().getAlgorithm());
     }
 
