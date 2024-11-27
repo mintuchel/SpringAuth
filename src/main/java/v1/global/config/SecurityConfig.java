@@ -21,9 +21,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity // Spring Security 를 활성화하겠다. 필터 체인을 생성하고 웹 보안을 활성화하겠다
 public class SecurityConfig {
 
-    // 내가 Security Logic 에 등록하고 싶은 새로운 하나의 FilterChain 에 대한 정의
+    // 내가 Security Logic 에 등록하고 싶은 새로운 하나의 customFilterChain 에 대한 정의
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
+    public SecurityFilterChain customFilterChain(HttpSecurity http) throws Exception{
         // Cross-Site Request Forgery 공격 방어 기능을 비활성화
         // REST API 나 JWT 토큰 기반 인증에서는 보통 서버가 세션을 사용하지 않기 때문에 CSRF 가 불필요할때가 많음
         http.csrf((auth) -> auth.disable());
