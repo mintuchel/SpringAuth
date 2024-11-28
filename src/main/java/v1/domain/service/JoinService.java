@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 public class JoinService {
 
     private final UserRepository userRepository;
+
     // password 암호화를 위한 Bean 객체 주입받기
     // 이 Bean 객체는 SecurityConfig 에서 생성한 빈임
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
@@ -26,9 +27,11 @@ public class JoinService {
 
         UserEntity newUser = new UserEntity();
         newUser.setUsername(username);
+
         // password 는 무조건 암호화해서 넣어줘야함!!
         newUser.setPassword(bCryptPasswordEncoder.encode(password));
         newUser.setRole("ROLE_ADMIN");
+
         userRepository.save(newUser);
     }
 }

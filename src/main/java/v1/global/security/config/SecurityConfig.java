@@ -41,12 +41,15 @@ public class SecurityConfig {
 
                         CorsConfiguration configuration = new CorsConfiguration();
 
+                        // frontend 포트 3000번에서 보내는거 허용
                         configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+                        // 모든 http method 허용
                         configuration.setAllowedMethods(Collections.singletonList("*"));
                         configuration.setAllowCredentials(true);
                         configuration.setAllowedHeaders(Collections.singletonList("*"));
                         configuration.setMaxAge(3600L);
 
+                        // Jwt 사용해야하므로 Authorization 헤더 허용해주기
                         configuration.setExposedHeaders(Collections.singletonList("Authorization"));
 
                         return configuration;
@@ -66,10 +69,8 @@ public class SecurityConfig {
 
         // 특정 URL 경로에 대한 접근 권한 설정
         http.authorizeHttpRequests((auth) -> auth
-                        // login join은 모든 사용자들에게 허용된 경로
-                        .requestMatchers("/login","/","/join").permitAll()
-                        // adim 은 ADMIN 롤인 사람만 가능하게끔 허용
-                        .requestMatchers("/admin").hasRole("ADMIN")
+                        .requestMatchers("/","/join","/login").permitAll() // main login join은 모든 사용자들에게 허용된 경로
+                        .requestMatchers("/admin").hasRole("ADMIN") // adim 은 ADMIN 롤인 사람만 가능하게끔 허용
                         .anyRequest().authenticated());
 
         /**

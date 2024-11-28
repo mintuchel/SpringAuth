@@ -17,6 +17,10 @@ import java.io.IOException;
 /**
  * 이미 Jwt token 을 발급받아 request 에 담아 보내고 있는 사람들을 위해서
  * 요청에 담긴 JWT 를 검증하기 위한 커스텀 필터를 등록해야 한다.
+ * 얘가 검증을 "진행"하지는 않는다. AuthenticationManager를 주입 안받고 있는거로 유추가 가능
+ *
+ * 얘가 SpringContext 에 Authentication 객체로 박아두면
+ * 얘 뒤에 오는 LoginFilter 에서 AuthenticationManager 에게 Authentication 객체를 넘김으로써 실제 검증을 진행함!
  */
 
 public class JwtFilter extends OncePerRequestFilter {
@@ -62,8 +66,11 @@ public class JwtFilter extends OncePerRequestFilter {
         // UserDetails 객체에 회원 정보 객체 담기
         CustomUserDetails customUserDetails = new CustomUserDetails(userEntity);
 
+        // Authentication 객체로 만들고
         Authentication authToken = new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
 
+        // SecurityContext 에 저장해두기
+        // 이러면 이 필터 뒤에 있는 LoginFilter 에서 해당 Authentication Token 을 AuthenticationManager 에게 넘겨서 인증을 진행함!!
         SecurityContextHolder.getContext().setAuthentication(authToken);
 
         filterChain.doFilter(request, response);

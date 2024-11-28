@@ -1,8 +1,9 @@
 spring:
   jwt:
-    secret: vmfhaltmskdlstkfkdgodyroqkfwkdbalroqkfwkdbalaaaaaaaaaaaaaaaabbbbb
+    secret: colepalmerpedronetononimaduekemoisescaicedo
   datasource:
-    url: jdbc:h2:mem:springJwtDB
+    # 자동으로 DB 생성됨
+    url: jdbc:h2:mem:springsecurityDB
     username: sa
     password:
     driver-class-name: org.h2.Driver

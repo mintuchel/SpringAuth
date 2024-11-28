@@ -17,8 +17,8 @@ import java.util.Arrays;
 import java.util.List;
 
 
-@EnableWebSecurity
-@Configuration
+//@EnableWebSecurity
+//@Configuration
 public class SecurityConfig {
     private final JwtFilter jwtFilter;
 

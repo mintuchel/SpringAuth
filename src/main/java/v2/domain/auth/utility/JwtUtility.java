@@ -14,7 +14,7 @@ import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.Map;
 
-@Component
+// @Component
 public class JwtUtility {
     private final SecretKey key;
     private final Long jwtAccessTokenExpiration;
