@@ -1,4 +1,4 @@
-package v1.global.jwt;
+package v1.global.security.filters;
 
 import v1.domain.dto.CustomUserDetails;
 import jakarta.servlet.FilterChain;
@@ -11,6 +11,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import v1.global.jwt.JwtUtil;
 
 import java.util.Collection;
 import java.util.Iterator;

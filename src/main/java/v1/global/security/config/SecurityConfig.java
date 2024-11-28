@@ -1,7 +1,10 @@
-package v1.global.config;
+package v1.global.security.config;
 
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 import v1.global.jwt.JwtUtil;
-import v1.global.jwt.CustomLoginFilter;
+import v1.global.security.filters.CustomLoginFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -12,10 +15,15 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import v1.global.security.filters.JwtFilter;
 
-// 이 SecurityConfig 파일 안에 SecurityFilter"Chain" 을 반환하는 @Bean 을 정의해둠으로써
-// WAS 톰캣 필터 체인이 아닌 Spring Security 필터체인을 커스텀해서 등록할 수 있음
-// 이 Spring Security 필터체인은 톰캣 필터체인과 달리 스프링 컨테이너 내부에서 동작함!!
+import java.util.Collections;
+
+/**
+ * 이 SecurityConfig 파일 안에 SecurityFilter"Chain" 을 반환하는 @Bean 을 정의해둠으로써
+ * WAS 톰캣 필터 체인이 아닌! Spring Security 필터체인을 커스텀해서 등록할 수 있음
+ * 이 Spring Security 필터체인은 톰캣 필터체인과 달리 스프링 컨테이너 내부에서 동작함!!
+**/
 
 @Configuration
 @EnableWebSecurity // Spring Security 를 활성화하겠다. 필터 체인을 생성하고 웹 보안을 활성화하겠다
@@ -24,6 +32,27 @@ public class SecurityConfig {
     // 내가 Security Logic 에 등록하고 싶은 새로운 하나의 customFilterChain 에 대한 정의
     @Bean
     public SecurityFilterChain customFilterChain(HttpSecurity http) throws Exception{
+
+        http
+                .cors((corsCustomizer -> corsCustomizer.configurationSource(new CorsConfigurationSource() {
+
+                    @Override
+                    public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+
+                        CorsConfiguration configuration = new CorsConfiguration();
+
+                        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+                        configuration.setAllowedMethods(Collections.singletonList("*"));
+                        configuration.setAllowCredentials(true);
+                        configuration.setAllowedHeaders(Collections.singletonList("*"));
+                        configuration.setMaxAge(3600L);
+
+                        configuration.setExposedHeaders(Collections.singletonList("Authorization"));
+
+                        return configuration;
+                    }
+                })));
+
         // Cross-Site Request Forgery 공격 방어 기능을 비활성화
         // REST API 나 JWT 토큰 기반 인증에서는 보통 서버가 세션을 사용하지 않기 때문에 CSRF 가 불필요할때가 많음
         http.csrf((auth) -> auth.disable());
@@ -43,9 +72,15 @@ public class SecurityConfig {
                         .requestMatchers("/admin").hasRole("ADMIN")
                         .anyRequest().authenticated());
 
-        // Jwt 를 사용하기 위해 만든 CustomLoginFilter 를 이 SecurityFilterChain 에 추가
-        // Spring Security 의 Default 필터 체인에서 UsernamePasswordAuthenticationFilter 위치에 추가
-        // 이 필터가 JWT 기반 인증을 처리하고 클라이언트에서 제공한 JWT 토큰을 검증하거나 발급하는 역할을 함
+        /**
+         * Request Header 를 통해 토큰 유효성을 검증해주는 JwtFilter
+         *  로그인 인증과 필요시 Jwt Token 발급을 해주는 CustomLoginFilter
+         *  이 두 개의 커스텀 필터를 SecurityFilterChain 에 추가하는 작업이 아래 두 줄임
+         *  Spring Security 의 Default 필터 체인에서 UsernamePasswordAuthenticationFilter 위치에 추가
+         *  이 필터가 JWT 기반 인증을 처리하고 클라이언트에서 제공한 JWT 토큰을 검증하거나 발급하는 역할을 함
+         */
+
+        http.addFilterBefore(new JwtFilter(jwtUtil), CustomLoginFilter.class);
         http.addFilterAt(new CustomLoginFilter(authenticationManager(authenticationConfiguration), jwtUtil), UsernamePasswordAuthenticationFilter.class);
 
         // 세션 설정
@@ -78,8 +113,8 @@ public class SecurityConfig {
         this.jwtUtil = jwtUtil;
     }
 
-    // Spring Security 를 통해서 회원 정보를 저장하거나 회원가입, 검증할때는
-    // 항상 비번을 암호화시켜서 검증하게됨
+    // Spring Security 를 통해서 회원 정보를 저장할때는 암호화해서 저장함
+    // 이 password 암호화 Bean 은 추후 Service 단에서 해당 Bean 을 주입받아서 쓰게됨
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder(){
         return new BCryptPasswordEncoder();
