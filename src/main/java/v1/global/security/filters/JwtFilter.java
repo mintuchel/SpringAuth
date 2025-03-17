@@ -17,9 +17,14 @@ import java.io.IOException;
 import java.util.Date;
 
 /**
+ * JwtFilter 는 기존 Jwt 를 검증하는 필터 → 로그인 이후의 요청을 처리
  * JWT 를 담아 보내는 Request 를 Spring Context 내부로 들어가기 전에
  * Servlet 단에서 낚아채 검증하기 위해 커스텀 필터를 생성한다
  * 이 필터는 Request 들을 낚아채서 Jwt 토큰 여부 및 유효성을 검증함
+ *
+ * JwtFilter 는 클라이언트가 이미 Jwt 를 가지고 있을때 실행되는 필터임!
+ * 1) 클라이언트가 이미 가지고 있는 Jwt 를 검증하는 역할
+ * 2) 검증이 성공하면 Spring Security 의 SecurityContext 에 인증 정보 저장
  */
 public class JwtFilter extends OncePerRequestFilter {
 
@@ -90,6 +95,7 @@ public class JwtFilter extends OncePerRequestFilter {
          */
         SecurityContextHolder.getContext().setAuthentication(authToken);
 
+        // filterChain 에 등록된 다음 필터한테 request response 넘기기
         filterChain.doFilter(request, response);
     }
 }

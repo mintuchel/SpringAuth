@@ -17,11 +17,10 @@ import java.util.Collection;
 import java.util.Iterator;
 
 /**
- *  로그인 필터
- *  UsernamePasswordAuthenticationFilter 는 인증을 진행할때 아이디, 패스워드를 파싱하여 인증요청을 위임하는 필터
- *  Login 을 시도하면 인증을 위한 Token 을 생성한 후 인증을 AuthenticationManager 에 위임함
- *  이 녀석은 SecurityConfig 에 정의되어있는 필터체인에 들어갈 한 개의 커스텀 필터임
- *  이 커스텀 필터를 통해 Jwt 토큰 관리하려는거임
+ *   LoginFilter 는 로그인할 때 새 Jwt 를 생성하는 필터 → 로그인 시에만 실행
+ *  사용자가 로그인할 때 새로운 Jwt 를 발급하는 역할
+ *  로그인 요청을 처리하고, 인증이 성공하면 새로운 Jwt 를 생성
+ *  클라이언트는 이 새 Jwt 를 받아서 이후 요청마다 Authorization 헤더에 넣어 사용
  */
 
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
@@ -58,16 +57,16 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     // attemptAuthentication 이 성공했다면 이 함수가 실행됨
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication){
-        // 보안 맥락에서 Principal 은 인증된 사용자를 뜻함!
-        // 즉 인증된 사용자 정보를 내가 직접 정의한 CustomUserDetails 로 받아오기
+        // 보안 맥락에서 Principal 은 "인증된 사용자"를 뜻함!
+        // 즉 인증된 사용자 정보를 내가 직접 정의한 JwtUserDetails 로 받아오기
         JwtUserDetails jwtUserDetails = (JwtUserDetails) authentication.getPrincipal();
 
         // username 추출
         String username = jwtUserDetails.getUsername();
 
         // authorities 권한 추출
-        Collection<? extends GrantedAuthority> authroities = authentication.getAuthorities();
-        Iterator<? extends GrantedAuthority> iterator = authroities.iterator();
+        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+        Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
         GrantedAuthority auth = iterator.next();
 
         String role = auth.getAuthority();
