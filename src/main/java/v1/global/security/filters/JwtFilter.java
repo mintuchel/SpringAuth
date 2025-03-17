@@ -8,9 +8,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
-import v1.domain.dto.CustomUserDetails;
-import v1.domain.entity.UserEntity;
-import v1.global.jwt.JwtUtil;
+import v1.domain.dto.JwtUserDetails;
+import v1.domain.entity.User;
+import v1.global.jwt.JwtProvider;
 
 import java.io.IOException;
 
@@ -23,12 +23,17 @@ import java.io.IOException;
  * 얘 뒤에 오는 LoginFilter 에서 AuthenticationManager 에게 Authentication 객체를 넘김으로써 실제 검증을 진행함!
  */
 
+/**
+ * JWT를 담아 보내는 Request를 Spring Context 내부로 들어가기 전에
+ * Servlet 단에서 낚아채 검증하기 위해 커스텀 필터를 생성한다
+ * 이 필터는 Request 들을 낚아채
+ */
 public class JwtFilter extends OncePerRequestFilter {
 
-    private final JwtUtil jwtUtil;
+    private final JwtProvider jwtProvider;
 
-    public JwtFilter(JwtUtil jwtUtil) {
-        this.jwtUtil = jwtUtil;
+    public JwtFilter(JwtProvider jwtProvider) {
+        this.jwtProvider = jwtProvider;
     }
 
     @Override
@@ -48,26 +53,26 @@ public class JwtFilter extends OncePerRequestFilter {
         // Bearer 부분 제거한 순수 jwt token 값 추출
         String token = authorization.substring(7); // authorization.split("")[1];
 
-        if(jwtUtil.isExpired(token)) {
+        if(jwtProvider.isExpired(token)) {
             System.out.println("Token is expired");
             filterChain.doFilter(request, response);
 
             return;
         }
 
-        String username = jwtUtil.getUsername(token);
-        String role = jwtUtil.getRole(token);
+        String username = jwtProvider.getUsername(token);
+        String role = jwtProvider.getRole(token);
 
-        UserEntity userEntity = new UserEntity();
+        User userEntity = new User();
         userEntity.setUsername(username);
         userEntity.setPassword("temppassword");
         userEntity.setRole(role);
 
         // UserDetails 객체에 회원 정보 객체 담기
-        CustomUserDetails customUserDetails = new CustomUserDetails(userEntity);
+        JwtUserDetails jwtUserDetails = new JwtUserDetails(userEntity);
 
         // Authentication 객체로 만들고
-        Authentication authToken = new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
+        Authentication authToken = new UsernamePasswordAuthenticationToken(jwtUserDetails, null, jwtUserDetails.getAuthorities());
 
         // SecurityContext 에 저장해두기
         // 이러면 이 필터 뒤에 있는 LoginFilter 에서 해당 Authentication Token 을 AuthenticationManager 에게 넘겨서 인증을 진행함!!

@@ -3,8 +3,8 @@ package v1.global.security.config;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
-import v1.global.jwt.JwtUtil;
-import v1.global.security.filters.CustomLoginFilter;
+import v1.global.jwt.JwtProvider;
+import v1.global.security.filters.LoginFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -81,8 +81,8 @@ public class SecurityConfig {
          *  이 필터가 JWT 기반 인증을 처리하고 클라이언트에서 제공한 JWT 토큰을 검증하거나 발급하는 역할을 함
          */
 
-        http.addFilterBefore(new JwtFilter(jwtUtil), CustomLoginFilter.class);
-        http.addFilterAt(new CustomLoginFilter(authenticationManager(authenticationConfiguration), jwtUtil), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(new JwtFilter(jwtProvider), LoginFilter.class);
+        http.addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtProvider), UsernamePasswordAuthenticationFilter.class);
 
         // 세션 설정
         // jwt는 세션을 항상 stateless로 관리
@@ -100,7 +100,7 @@ public class SecurityConfig {
     private final AuthenticationConfiguration authenticationConfiguration;
 
     // CustomLoginFilter 에 필요한 JWTUtil 주입받기
-    private final JwtUtil jwtUtil;
+    private final JwtProvider jwtProvider;
 
     // 위에 생성한 CustomFilterChain 인 loginFilterChain 생성자의 매개변수로 전달해야하는 AuthenticationManager 를 빈으로 등록
     @Bean
@@ -109,9 +109,9 @@ public class SecurityConfig {
     }
 
     // 위에꺼 생성자로 주입
-    public SecurityConfig(AuthenticationConfiguration authenticationConfiguration, JwtUtil jwtUtil){
+    public SecurityConfig(AuthenticationConfiguration authenticationConfiguration, JwtProvider jwtProvider){
         this.authenticationConfiguration = authenticationConfiguration;
-        this.jwtUtil = jwtUtil;
+        this.jwtProvider = jwtProvider;
     }
 
     // Spring Security 를 통해서 회원 정보를 저장할때는 암호화해서 저장함

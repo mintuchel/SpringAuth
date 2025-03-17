@@ -1,7 +1,7 @@
 package v1.domain.service;
 
 import v1.domain.dto.JoinDTO;
-import v1.domain.entity.UserEntity;
+import v1.domain.entity.User;
 import v1.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -25,13 +25,13 @@ public class JoinService {
 
         if(doesExist) return;
 
-        UserEntity newUser = new UserEntity();
-        newUser.setUsername(username);
+        User user = new User();
+        user.setUsername(username);
 
-        // password 는 무조건 암호화해서 넣어줘야함!!
-        newUser.setPassword(bCryptPasswordEncoder.encode(password));
-        newUser.setRole("ROLE_ADMIN");
+        // password 는 암호화해서 넣어주기
+        user.setPassword(bCryptPasswordEncoder.encode(password));
+        user.setRole("ROLE_ADMIN");
 
-        userRepository.save(newUser);
+        userRepository.save(user);
     }
 }

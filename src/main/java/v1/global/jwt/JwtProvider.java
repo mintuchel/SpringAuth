@@ -12,12 +12,12 @@ import java.util.Date;
 // JWT 생성 및 정보 추출해주는 Utility 클래스
 
 @Component
-public class JwtUtil {
+public class JwtProvider {
     // 객체 키 클래스가 있음
     private final SecretKey secretKey;
 
     // secret 을 해시알고리즘을 통해 변환하고 final key 로 설정해주기
-    public JwtUtil(@Value("${spring.jwt.secret}") String secret){
+    public JwtProvider(@Value("${spring.jwt.secret}") String secret){
         this.secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), Jwts.SIG.HS256.key().build().getAlgorithm());
     }
 

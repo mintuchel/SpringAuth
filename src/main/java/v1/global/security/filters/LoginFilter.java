@@ -1,6 +1,6 @@
 package v1.global.security.filters;
 
-import v1.domain.dto.CustomUserDetails;
+import v1.domain.dto.JwtUserDetails;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -11,31 +11,31 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import v1.global.jwt.JwtUtil;
+import v1.global.jwt.JwtProvider;
 
 import java.util.Collection;
 import java.util.Iterator;
 
 /**
- *  내가 만든 커스텀 필터
+ *  로그인 필터
  *  UsernamePasswordAuthenticationFilter 는 인증을 진행할때 아이디, 패스워드를 파싱하여 인증요청을 위임하는 필터
  *  Login 을 시도하면 인증을 위한 Token 을 생성한 후 인증을 AuthenticationManager 에 위임함
  *  이 녀석은 SecurityConfig 에 정의되어있는 필터체인에 들어갈 한 개의 커스텀 필터임
  *  이 커스텀 필터를 통해 Jwt 토큰 관리하려는거임
  */
 
-public class CustomLoginFilter extends UsernamePasswordAuthenticationFilter {
+public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     // 검증을 위임할 녀석
     // username과 Password를 파싱한 후 UsernamePasswordAuthenticationToken 이라는 객체로 만들어 얘한테 줄거임
     private final AuthenticationManager authenticationManager;
 
     // Jwt token 작업을 위임할 녀석
-    private final JwtUtil jwtUtil;
+    private final JwtProvider jwtProvider;
 
-    public CustomLoginFilter(AuthenticationManager authenticationManager, JwtUtil jwtUtil){
+    public LoginFilter(AuthenticationManager authenticationManager, JwtProvider jwtProvider){
         this.authenticationManager = authenticationManager;
-        this.jwtUtil = jwtUtil;
+        this.jwtProvider = jwtProvider;
     }
 
     // authenticationManager 에게 넘겨 인증
@@ -60,10 +60,10 @@ public class CustomLoginFilter extends UsernamePasswordAuthenticationFilter {
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication){
         // 보안 맥락에서 Principal 은 인증된 사용자를 뜻함!
         // 즉 인증된 사용자 정보를 내가 직접 정의한 CustomUserDetails 로 받아오기
-        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+        JwtUserDetails jwtUserDetails = (JwtUserDetails) authentication.getPrincipal();
 
         // username 추출
-        String username = customUserDetails.getUsername();
+        String username = jwtUserDetails.getUsername();
 
         // authorities 권한 추출
         Collection<? extends GrantedAuthority> authroities = authentication.getAuthorities();
@@ -73,7 +73,7 @@ public class CustomLoginFilter extends UsernamePasswordAuthenticationFilter {
         String role = auth.getAuthority();
 
         // JwtUtil을 통해 토큰 생성하기
-        String token = jwtUtil.createJwt(username, role, 60*60*10L);
+        String token = jwtProvider.createJwt(username, role, 60*60*10L);
 
         // Client 한테 보낼 시에 토큰을 보내줘야하므로
         // 인자로 받은 response 에 token 추가해주기
