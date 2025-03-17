@@ -10,11 +10,12 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
-// JWT 생성 및 정보 추출해주는 Utility 클래스
+// JWT 생성, 유효성 판단, Claim 추출을 해주는 Component
 
 @Component
 public class JwtProvider {
-    // 객체 키 클래스가 있음
+
+    // 서버 내부 SecretKey
     private final SecretKey secretKey;
 
     // secret 을 해시알고리즘을 통해 변환하고 final key 로 설정해주기
@@ -42,40 +43,44 @@ public class JwtProvider {
                 .compact();
     }
 
-    // Jwts.parser().verifyWith(secretKey) = 우리 쪽에서 발급한 토큰이 맞는지 확인
-
-    public String getUsername(String token) {
-        Claims claims = Jwts.parser()
-                .verifyWith(secretKey)
+    /**
+     * 우리 쪽에서 발급한 토큰이 맞는지 확인
+     * Request 로 넘어온 Jwt 의 header 와 payload 부분을 직접 서버의 secret key 로 서명을 생성해본다
+     * 현장에서 생성된 서명과 request 로 날아온 서명이 일치하면 우리쪽에서 발급한 토큰이 맞는 것이다!
+     * 맞으면 Payload 내부의 Claim 정보들 반환
+     * 틀리면 예외 반환
+     */
+    public Claims verifySignature(String token) {
+        return Jwts.parser()
+                .verifyWith(secretKey) // 서명 검증 수행
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
-
-        return claims.get("username", String.class);
     }
 
-    public String getRole(String token){
-        Claims claims = Jwts.parser()
-                .verifyWith(secretKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+    /**
+     * 아래 Claims 들을 추출하는 함수들은 모두 내부적으로 토큰의 유효성 여부를 검증한다
+     * 즉, 우리쪽에서 발급한 토큰이 맞는지 확인 후에 특정 Claim 부분을 반환하는 것이다!
+     */
 
-        return claims.get("role", String.class);
-    }
-
-    // Jwt 만료 여부 확인
-    public Boolean isExpired(String token){
-
-        // 만료 시간 추출
-        Date expirationDate = Jwts.parser()
-                .verifyWith(secretKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .getExpiration();
-
-        // 만료 여부 반환
-        return expirationDate.before(new Date());
-    }
+//    public String getUsername(String token) {
+//        Claims claims = verifySignature(token);
+//        return claims.get("username", String.class);
+//    }
+//
+//    public String getRole(String token){
+//        Claims claims = verifySignature(token);
+//        return claims.get("role", String.class);
+//    }
+//
+//    // Jwt 만료 여부 확인
+//    public Boolean isExpired(String token){
+//        Claims claims = verifySignature(token);
+//
+//        // 만료 시간 추출
+//        Date expirationDate = claims.getExpiration();
+//
+//        // 만료 여부 반환
+//        return expirationDate.before(new Date());
+//    }
 }
