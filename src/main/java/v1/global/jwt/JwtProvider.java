@@ -1,5 +1,6 @@
 package v1.global.jwt;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -24,26 +25,57 @@ public class JwtProvider {
     // Jwt 생성
     public String createJwt(String username, String role, Long expiredMs){
         return Jwts.builder()
+
+                // Payload 에 원하는 Claim 정보 넣기
+                // claim 은 디코딩이 언제나 가능하기 때문에 민감한 정보를 넣으면 안됨!
                 .claim("username",username)
                 .claim("role", role)
-                .issuedAt(new Date(System.currentTimeMillis())) // 현재 발행 시간
-                .expiration(new Date(System.currentTimeMillis() + expiredMs)) // Token 소멸 시간
+
+                // Payload 에 발행시간 및 만료시간 추가
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + expiredMs))
+
+                // 인코딩된 헤더와 클레임 부분을 SecretKey 와 서명 알고리즘을 이용해 서명을 생성하여 추가
                 .signWith(secretKey)
+
+                // Header, Payload, Signature 를 "." 으로 연결시켜 jwt 토큰 완성
                 .compact();
     }
 
     // Jwts.parser().verifyWith(secretKey) = 우리 쪽에서 발급한 토큰이 맞는지 확인
 
-    public String getUsername(String token){
-        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("username", String.class);
+    public String getUsername(String token) {
+        Claims claims = Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+        return claims.get("username", String.class);
     }
 
     public String getRole(String token){
-        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("role",String.class);
+        Claims claims = Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+        return claims.get("role", String.class);
     }
 
-    // Jwt Token 소멸 확인
+    // Jwt 만료 여부 확인
     public Boolean isExpired(String token){
-        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getExpiration().before(new Date());
+
+        // 만료 시간 추출
+        Date expirationDate = Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getExpiration();
+
+        // 만료 여부 반환
+        return expirationDate.before(new Date());
     }
 }
