@@ -33,18 +33,18 @@ public class SecurityConfig {
 
     // AuthenticationManager에 필요한 AuthenticationConfiguration 정의
     private final AuthenticationConfiguration authenticationConfiguration;
-
     private final JwtProvider jwtProvider;
+
+    // AuthenticationManager 가 인자로 받을 AuthenticationConfiguration 객체 생성자 주입
+    public SecurityConfig(AuthenticationConfiguration authenticationConfiguration, JwtProvider jwtProvider) {
+        this.authenticationConfiguration = authenticationConfiguration;
+        this.jwtProvider = jwtProvider;
+    }
 
     // LoginFilterChain(UsernamePasswordAuthenticationFilter)에 필요한 AuthenticationManager 를 @Bean 으로 등록
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception{
         return configuration.getAuthenticationManager();
-    }
-
-    public SecurityConfig(AuthenticationConfiguration authenticationConfiguration, JwtProvider jwtProvider){
-        this.authenticationConfiguration = authenticationConfiguration;
-        this.jwtProvider = jwtProvider;
     }
 
     // AuthenticationManager 에 필요한 PasswordEncoder @Bean 으로 등록
@@ -55,7 +55,7 @@ public class SecurityConfig {
 
     // 내가 Security Logic 에 등록하고 싶은 새로운 하나의 customFilterChain 에 대한 정의
     @Bean
-    public SecurityFilterChain customFilterChain(HttpSecurity http) throws Exception{
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
                 .cors((corsCustomizer -> corsCustomizer.configurationSource(new CorsConfigurationSource() {
@@ -80,31 +80,29 @@ public class SecurityConfig {
                     }
                 })));
 
+        http
+                .csrf((auth) -> auth.disable());
+        http
+                .formLogin((auth) -> auth.disable());
+        http
+                .httpBasic((auth) -> auth.disable());
 
-        http.csrf((auth) -> auth.disable());
-
-        http.formLogin((auth) -> auth.disable());
-        // HTTP 기본 인증 방식 비활성화
-        // 브라우저에서 기본적으로 제공하는 팝업 창을 통해 사용자 인증을 처리하는 방식인데,
-        // JWT나 OAuth 같은 다른 인증 방식을 사용하기 위해 비활성화한 것입니다.
-        http.httpBasic((auth) -> auth.disable());
-
-        // 특정 URL 경로에 대한 접근 권한 설정
-        http.authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/","/join","/login").permitAll() // main login join은 모든 사용자들에게 허용된 경로
-                        .requestMatchers("/admin").hasRole("ADMIN") // adim 은 ADMIN 롤인 사람만 가능하게끔 허용
+        http
+                .authorizeHttpRequests((auth) -> auth
+                        // 해당 URL 은 모두 허용
+                        .requestMatchers("/login", "/", "/join").permitAll()
+                        // /admin URL 은 ADMIN 인 ROLE 만 허용
+                        .requestMatchers("/admin").hasRole("ADMIN")
                         .anyRequest().authenticated());
 
-        /**
-         * JwtFilter 와 LoginFilter 를 SecurityFilterChain 에 추가
-         */
-        http.addFilterBefore(new JwtFilter(jwtProvider), LoginFilter.class);
-        http.addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtProvider), UsernamePasswordAuthenticationFilter.class);
+        http
+                .addFilterBefore(new JwtFilter(jwtProvider), LoginFilter.class);
 
-        // 세션 설정
-        // Jwt 는 당연히 stateless로 관리
-        // 이 부분이 가장 중요함!
-        http.sessionManagement((session) -> session
+        http
+                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtProvider), UsernamePasswordAuthenticationFilter.class);
+
+        http
+                .sessionManagement((session) -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         return http.build();
