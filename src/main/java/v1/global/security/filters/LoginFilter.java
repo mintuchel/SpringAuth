@@ -1,5 +1,8 @@
 package v1.global.security.filters;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.ServletInputStream;
+import org.springframework.util.StreamUtils;
 import v1.domain.dto.JwtUserDetails;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,8 +14,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import v1.domain.dto.LoginDTO;
 import v1.global.jwt.JwtProvider;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -40,8 +46,25 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     // 로그인 시도
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
-        String username = obtainUsername(request);
-        String password = obtainPassword(request);
+        // multipart/form-data 로 받을때 사용
+        // String username = obtainUsername(request);
+        // String password = obtainPassword(request);
+
+        // JSON 형식으로 받기
+        LoginDTO loginDTO = new LoginDTO();
+
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            ServletInputStream inputStream = request.getInputStream();
+            String messageBody = StreamUtils.copyToString(inputStream, StandardCharsets.UTF_8);
+            loginDTO = objectMapper.readValue(messageBody, LoginDTO.class);
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        String username = loginDTO.getUsername();
+        String password = loginDTO.getPassword();
 
         System.out.println("username:" + username + " password:" + password);
 
