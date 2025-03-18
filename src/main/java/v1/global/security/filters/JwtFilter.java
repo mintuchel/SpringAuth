@@ -37,29 +37,15 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        // Request Header 에서 Authorization 을 찾음
-        String authorization = request.getHeader("Authorization");
-
-        if(authorization != null) {
-            System.out.println("Request doesnt have 'Authorization'");
-            return;
-        }
-
-        if(!authorization.startsWith("Bearer ")) {
-            System.out.println("Request doesnt have bearer token");
-            return;
-        }
-
-        // Bearer 부분 제거한 순수 Jwt 추출
-        // authorization.split("")[1];
-        String token = authorization.substring(7);
+        // Request Header 에서 Jwt 추출
+        String accessToken = getAccessToken(request, response);
 
         /**
          * 우리쪽에서 발급한 토큰이 맞는지 확인
          * 맞으면 Payload 의 Claims 값 반환
          * 아니면 내부에서 예외 터짐!
          */
-        Claims claims = jwtProvider.verifySignature(token);
+        Claims claims = jwtProvider.verifySignature(accessToken);
 
         // 만료시간 추출
         Date expirationDate = claims.getExpiration();
@@ -98,35 +84,22 @@ public class JwtFilter extends OncePerRequestFilter {
         // filterChain 에 등록된 다음 필터한테 request response 넘기기
         filterChain.doFilter(request, response);
     }
-}
 
-// 짧지만 가독성은 더 안좋은 코드
-//
-//        // 해당 토큰이 우리쪽에서 발급한 토큰이 맞고, 유효기간이 만료되지 않았으면
-//        // isExpired 함수 과정 상 verifySignature 함수가 호출되므로 유효성 검증이 포함되어 있음
-//        if(jwtUtil.isExpired(token)) {
-//            System.out.println("Token is expired");
-//            filterChain.doFilter(request, response);
-//
-//            return;
-//        }
-//
-//        String username = jwtUtil.getUsername(token);
-//        String role = jwtUtil.getRole(token);
-//
-//        UserEntity userEntity = new UserEntity();
-//        userEntity.setUsername(username);
-//        userEntity.setPassword("temppassword");
-//        userEntity.setRole(role);
-//
-//        // UserDetails 객체에 회원 정보 객체 담기
-//        CustomUserDetails customUserDetails = new CustomUserDetails(userEntity);
-//
-//        // Authentication 객체로 만들고
-//        Authentication authToken = new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
-//
-//        // SecurityContext 에 저장해두기
-//        // 이러면 이 필터 뒤에 있는 LoginFilter 에서 해당 Authentication Token 을 AuthenticationManager 에게 넘겨서 인증을 진행함!!
-//        SecurityContextHolder.getContext().setAuthentication(authToken);
-//
-//        filterChain.doFilter(request, response);
+    private String getAccessToken(HttpServletRequest request, HttpServletResponse response) {
+        String authorization = request.getHeader("Authorization");
+
+        if(authorization == null) {
+            System.out.println("Request doesnt have 'Authorization'");
+            return null;
+        }
+
+        if(!authorization.startsWith("Bearer ")) {
+            System.out.println("Request doesnt have bearer token");
+            return null;
+        }
+
+        // Bearer 부분 제거한 순수 Jwt 추출
+        // authorization.split("")[1];
+        return authorization.substring(7);
+    }
+}
