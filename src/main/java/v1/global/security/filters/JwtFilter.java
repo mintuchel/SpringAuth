@@ -37,11 +37,13 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
+        System.out.println("JwtFilter executed");
+
         // Request Header 에서 Jwt 추출
         String accessToken = getAccessToken(request, response);
 
         // accessToken 이 존재하지 않는다면
-        if (accessToken == null || !accessToken.startsWith("Bearer ")) {
+        if (accessToken == null) {
 
             System.out.println("token null");
             // 다음 필터인 LoginFilter 로 진행
