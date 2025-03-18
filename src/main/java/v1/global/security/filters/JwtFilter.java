@@ -40,6 +40,15 @@ public class JwtFilter extends OncePerRequestFilter {
         // Request Header 에서 Jwt 추출
         String accessToken = getAccessToken(request, response);
 
+        // accessToken 이 존재하지 않는다면
+        if (accessToken == null || !accessToken.startsWith("Bearer ")) {
+
+            System.out.println("token null");
+            // 다음 필터인 LoginFilter 로 진행
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         /**
          * 우리쪽에서 발급한 토큰이 맞는지 확인
          * 맞으면 Payload 의 Claims 값 반환
