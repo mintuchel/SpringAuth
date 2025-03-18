@@ -23,7 +23,7 @@ import java.util.Collection;
 import java.util.Iterator;
 
 /**
- *   LoginFilter 는 로그인할 때 새 Jwt 를 생성하는 필터 → 로그인 시에만 실행
+ *  LoginFilter 는 로그인할 때 새 Jwt 를 생성하는 필터 → 로그인 시에만 실행
  *  사용자가 로그인할 때 새로운 Jwt 를 발급하는 역할
  *  로그인 요청을 처리하고, 인증이 성공하면 새로운 Jwt 를 생성
  *  클라이언트는 이 새 Jwt 를 받아서 이후 요청마다 Authorization 헤더에 넣어 사용
@@ -50,6 +50,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         // String username = obtainUsername(request);
         // String password = obtainPassword(request);
 
+        System.out.println("LoginFilter executed");
+
         // JSON 형식으로 받기
         LoginDTO loginDTO = new LoginDTO();
 
@@ -66,6 +68,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         String username = loginDTO.getUsername();
         String password = loginDTO.getPassword();
 
+        System.out.println("login success");
         System.out.println("username:" + username + " password:" + password);
 
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(username, password, null);
@@ -88,7 +91,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         String role = auth.getAuthority();
 
-        String token = jwtProvider.createJwt(username, role, 60*60*10L);
+        // Jwt 5분으로 설정
+        String token = jwtProvider.createJwt(username, role, 5 * 60 * 1000L);
 
         // Bearer 인증 방식 하고 띄어쓰기 무조건 해줘야함
         response.addHeader("Authorization", "Bearer " + token);
