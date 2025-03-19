@@ -37,6 +37,7 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
+        System.out.println("\n=========================================\n");
         System.out.println("JwtFilter executed");
 
         // Request Header 에서 Jwt 추출
@@ -45,11 +46,14 @@ public class JwtFilter extends OncePerRequestFilter {
         // accessToken 이 존재하지 않는다면
         if (accessToken == null) {
 
-            System.out.println("token null");
+            System.out.println("Token null, passing request to LoginFilter...");
             // 다음 필터인 LoginFilter 로 진행
             filterChain.doFilter(request, response);
             return;
         }
+
+        // accessToken 이 존재한다면
+        System.out.println("Token found, verifying access token...");
 
         /**
          * 우리쪽에서 발급한 토큰이 맞는지 확인
@@ -91,7 +95,7 @@ public class JwtFilter extends OncePerRequestFilter {
          * SecurityContextHolder.getContext().getAuthentication()을 호출하면 현재 로그인한 사용자 정보를 가져올 수 있음
          */
         SecurityContextHolder.getContext().setAuthentication(authToken);
-
+        System.out.println("User authenticated");
         // filterChain 에 등록된 다음 필터한테 request response 넘기기
         filterChain.doFilter(request, response);
     }

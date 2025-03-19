@@ -60,7 +60,6 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
             ServletInputStream inputStream = request.getInputStream();
             String messageBody = StreamUtils.copyToString(inputStream, StandardCharsets.UTF_8);
             loginDTO = objectMapper.readValue(messageBody, LoginDTO.class);
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
