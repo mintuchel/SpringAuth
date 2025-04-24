@@ -72,6 +72,8 @@ public class JwtFilter extends OncePerRequestFilter {
             System.out.println("token is expired!");
             // 다음 필터인 LoginFilter 로 진행
             filterChain.doFilter(request, response);
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Invalid JWT Token!");
             return;
         }else{
             System.out.println("token is not expired!");
@@ -110,7 +112,6 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         // Bearer 부분 제거한 순수 Jwt 추출
-        // return authorization.substring(7);
-        return authorization.split("")[1];
+        return authorization.substring(7);
     }
 }
