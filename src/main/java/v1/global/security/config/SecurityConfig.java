@@ -3,7 +3,7 @@ package v1.global.security.config;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
-import v1.global.jwt.JwtProvider;
+import v1.global.security.jwt.JwtUtil;
 import v1.global.security.filters.LoginFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,12 +33,13 @@ public class SecurityConfig {
 
     // AuthenticationManager에 필요한 AuthenticationConfiguration 정의
     private final AuthenticationConfiguration authenticationConfiguration;
-    private final JwtProvider jwtProvider;
+    // JwtFilter와 LoginFilter에 필요한 JwtProvider 정의
+    private final JwtUtil jwtUtil;
 
     // AuthenticationManager 가 인자로 받을 AuthenticationConfiguration 객체 생성자 주입
-    public SecurityConfig(AuthenticationConfiguration authenticationConfiguration, JwtProvider jwtProvider) {
+    public SecurityConfig(AuthenticationConfiguration authenticationConfiguration, JwtUtil jwtUtil) {
         this.authenticationConfiguration = authenticationConfiguration;
-        this.jwtProvider = jwtProvider;
+        this.jwtUtil = jwtUtil;
     }
 
     // LoginFilterChain(UsernamePasswordAuthenticationFilter)에 필요한 AuthenticationManager 를 @Bean 으로 등록
@@ -69,8 +70,8 @@ public class SecurityConfig {
                         configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
                         // 모든 http method 허용
                         configuration.setAllowedMethods(Collections.singletonList("*"));
-                        configuration.setAllowCredentials(true);
                         configuration.setAllowedHeaders(Collections.singletonList("*"));
+                        configuration.setAllowCredentials(true);
                         configuration.setMaxAge(3600L);
 
                         // Jwt 사용해야하므로 Authorization 헤더 허용해주기
@@ -81,7 +82,7 @@ public class SecurityConfig {
                 })));
 
         http
-                .csrf((auth) -> auth.disable());
+                .csrf((auth) -> auth.disable()); // Jwt 에서는 쿠키를 안쓰고 HTTP Header에 토큰을 실어보내므로 CSRF 공격이 발생할 여지가 없음!
         http
                 .formLogin((auth) -> auth.disable());
         http
@@ -93,13 +94,17 @@ public class SecurityConfig {
                         .requestMatchers("/login", "/", "/join").permitAll()
                         // /admin URL 은 ADMIN 인 ROLE 만 허용
                         .requestMatchers("/admin").hasRole("ADMIN")
+                        // 그 외는 인증 필요
                         .anyRequest().authenticated());
 
+        // JwtFilter 는 항상 먼저 실행되도록 등록
         http
-                .addFilterBefore(new JwtFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(new JwtFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
 
+        // LoginFilter 는 "/login" 과 "POST" 요청에서만 동작하도록 UsernamePasswordAuthenticationFilter.class 위치에 등록
+        // UsernamePasswordAuthenticationFilter 이게 내부적으로 "/login", POST 요청에만 작동하도록 되어있음!
         http
-                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtProvider), UsernamePasswordAuthenticationFilter.class);
+                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil), UsernamePasswordAuthenticationFilter.class);
 
         http
                 .sessionManagement((session) -> session
