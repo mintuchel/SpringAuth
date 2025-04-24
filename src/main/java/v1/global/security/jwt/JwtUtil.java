@@ -13,13 +13,13 @@ import java.util.Date;
 // JWT 생성, 유효성 판단, Claim 추출을 해주는 Component
 
 @Component
-public class JwtProvider {
+public class JwtUtil {
 
     // 서버 내부 SecretKey
     private final SecretKey secretKey;
 
     // secret 을 해시알고리즘을 통해 변환하고 final key 로 설정해주기
-    public JwtProvider(@Value("${spring.jwt.secret}") String secret){
+    public JwtUtil(@Value("${spring.jwt.secret}") String secret){
         this.secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), Jwts.SIG.HS256.key().build().getAlgorithm());
     }
 
@@ -58,29 +58,18 @@ public class JwtProvider {
                 .getPayload();
     }
 
-    /**
-     * 아래 Claims 들을 추출하는 함수들은 모두 내부적으로 토큰의 유효성 여부를 검증한다
-     * 즉, 우리쪽에서 발급한 토큰이 맞는지 확인 후에 특정 Claim 부분을 반환하는 것이다!
-     */
 
-//    public String getUsername(String token) {
-//        Claims claims = verifySignature(token);
-//        return claims.get("username", String.class);
-//    }
-//
-//    public String getRole(String token){
-//        Claims claims = verifySignature(token);
-//        return claims.get("role", String.class);
-//    }
-//
-//    // Jwt 만료 여부 확인
-//    public Boolean isExpired(String token){
-//        Claims claims = verifySignature(token);
-//
-//        // 만료 시간 추출
-//        Date expirationDate = claims.getExpiration();
-//
-//        // 만료 여부 반환
-//        return expirationDate.before(new Date());
-//    }
+    // Claim 에서 username 추출
+    public String getUsername(Claims claims){
+        return claims.get("username", String.class);
+    }
+
+    public String getRole(Claims claims){
+        return claims.get("role", String.class);
+    }
+    
+    // Claim 에서 만료기간 확인
+    public Boolean isExpired(Claims claims){
+        return claims.getExpiration().before(new Date());
+    }
 }
