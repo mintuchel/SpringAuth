@@ -25,12 +25,11 @@ public class JoinService {
 
         if(doesExist) return;
 
-        User user = new User();
-        user.setUsername(username);
-
-        // password 는 암호화해서 넣어주기
-        user.setPassword(bCryptPasswordEncoder.encode(password));
-        user.setRole("ROLE_ADMIN");
+        User user = User.builder()
+                .username(username)
+                .password(bCryptPasswordEncoder.encode(password))
+                .role("ROLE_ADMIN")
+                .build();
 
         userRepository.save(user);
     }
