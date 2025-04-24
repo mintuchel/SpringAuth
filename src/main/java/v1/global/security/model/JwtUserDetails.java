@@ -32,14 +32,18 @@ public class JwtUserDetails implements UserDetails {
                 .build();
     }
 
-    @Override
-    public String getPassword() {
-        return user.getPassword();
+    public int getId() {
+        return user.getId();
     }
 
     @Override
     public String getUsername() {
         return user.getUsername();
+    }
+
+    @Override
+    public String getPassword() {
+        return user.getPassword();
     }
 
     @Override
