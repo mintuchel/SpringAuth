@@ -1,4 +1,4 @@
-package v1.domain.service;
+package v1.global.security.service;
 
 import v1.global.security.model.JwtUserDetails;
 import v1.domain.entity.User;
