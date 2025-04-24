@@ -1,5 +1,6 @@
-package v1.domain.dto;
+package v1.global.security.model;
 
+import io.jsonwebtoken.Claims;
 import v1.domain.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -15,10 +16,21 @@ import java.util.Collection;
  * 실제 유저들을 저장하는 User 엔티티를 감싸고 있음
  */
 
-@RequiredArgsConstructor
 public class JwtUserDetails implements UserDetails {
 
     private final User user;
+
+    public JwtUserDetails(User user) {
+        this.user = user;
+    }
+
+    public JwtUserDetails(String username, String role){
+        this.user = User.builder()
+                .username(username)
+                .password("1234")
+                .role(role)
+                .build();
+    }
 
     @Override
     public String getPassword() {
