@@ -1,6 +1,7 @@
 package v1.global.security.filters;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,12 +10,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
-import v1.domain.dto.JwtUserDetails;
-import v1.domain.entity.User;
-import v1.global.jwt.JwtProvider;
+import v1.global.security.model.JwtUserDetails;
+import v1.global.security.jwt.JwtUtil;
 
 import java.io.IOException;
-import java.util.Date;
 
 /**
  * JwtFilter 는 기존 Jwt 를 검증하는 필터 → 로그인 이후의 요청을 처리
@@ -28,27 +27,29 @@ import java.util.Date;
  */
 public class JwtFilter extends OncePerRequestFilter {
 
-    private final JwtProvider jwtProvider;
+    private final JwtUtil jwtUtil;
 
-    public JwtFilter(JwtProvider jwtProvider) {
-        this.jwtProvider = jwtProvider;
+    public JwtFilter(JwtUtil jwtUtil) {
+        this.jwtUtil = jwtUtil;
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        System.out.println("JwtFilter executed");
+        System.out.println("========== JwtFilter executed ==========");
 
         // Request Header 에서 Jwt 추출
-        String accessToken = getAccessToken(request, response);
+        String accessToken = getAccessToken(request);
 
         // accessToken 이 존재하지 않는다면
         if (accessToken == null) {
 
             System.out.println("token null");
-            // 다음 필터인 LoginFilter 로 진행
+            // filterChain 내 다음 필터 수행
             filterChain.doFilter(request, response);
             return;
+        }else{
+            System.out.println("token exists");
         }
 
         /**
@@ -56,30 +57,31 @@ public class JwtFilter extends OncePerRequestFilter {
          * 맞으면 Payload 의 Claims 값 반환
          * 아니면 내부에서 예외 터짐!
          */
-        Claims claims = jwtProvider.verifySignature(accessToken);
-
-        // 만료시간 추출
-        Date expirationDate = claims.getExpiration();
-
-        // 만료된 토큰이면
-        if(expirationDate.before(new Date())) {
-            System.out.println("Token is expired");
-            filterChain.doFilter(request, response);
+        Claims claims;
+        try {
+            claims = jwtUtil.verifySignature(accessToken);
+        } catch(JwtException e) {
+            System.out.println("Invalid JWT Token!" + e.getMessage());
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Invalid JWT Token!");
             return;
         }
 
-        // Claim 들 추출
-        String username = claims.get("username", String.class);
-        String role = claims.get("role", String.class);
+        System.out.println("existing token is valid!");
 
-        User user = new User();
-        user.setUsername(username);
-        user.setPassword("temppassword");
-        user.setRole(role);
+        // 만약 만료기간 지났다면
+        if(jwtUtil.isExpired(claims)) {
+            System.out.println("Token is expired!");
+            // 다음 필터인 LoginFilter 로 진행
+            filterChain.doFilter(request, response);
+            return;
+        }else{
+            System.out.println("Token is not expired!");
+        }
 
         // Spring Security 는 UserDetails 타입의 객체를 사용해 인증을 처리함
         // Spring Security 에서 인증 객체를 만들려면 UserDetails 를 구현한 객체가 필요
-        JwtUserDetails jwtUserDetails = new JwtUserDetails(user);
+        JwtUserDetails jwtUserDetails = new JwtUserDetails(jwtUtil.getUsername(claims), jwtUtil.getRole(claims));
 
         // SecurityContext 에 저장할 Authentication 객체 생성
         // UsernamePasswordAuthenticationToken 은 Authentication 을 구현한 객체
@@ -96,7 +98,7 @@ public class JwtFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private String getAccessToken(HttpServletRequest request, HttpServletResponse response) {
+    private String getAccessToken(HttpServletRequest request) {
         String authorization = request.getHeader("Authorization");
 
         if(authorization == null) {
