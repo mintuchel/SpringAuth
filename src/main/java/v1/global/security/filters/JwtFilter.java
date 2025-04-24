@@ -36,7 +36,7 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        System.out.println("========== JwtFilter executed ==========");
+        System.out.println("========== [ JwtFilter executed ] ==========");
 
         // Request Header 에서 Jwt 추출
         String accessToken = getAccessToken(request);
@@ -61,9 +61,7 @@ public class JwtFilter extends OncePerRequestFilter {
         try {
             claims = jwtUtil.verifySignature(accessToken);
         } catch(JwtException e) {
-            System.out.println("Invalid JWT Token!" + e.getMessage());
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Invalid JWT Token!");
+            System.out.println("invalid token!" + " ( " + e.getMessage() + " )");
             return;
         }
 
@@ -71,12 +69,12 @@ public class JwtFilter extends OncePerRequestFilter {
 
         // 만약 만료기간 지났다면
         if(jwtUtil.isExpired(claims)) {
-            System.out.println("Token is expired!");
+            System.out.println("token is expired!");
             // 다음 필터인 LoginFilter 로 진행
             filterChain.doFilter(request, response);
             return;
         }else{
-            System.out.println("Token is not expired!");
+            System.out.println("token is not expired!");
         }
 
         // Spring Security 는 UserDetails 타입의 객체를 사용해 인증을 처리함
@@ -102,17 +100,17 @@ public class JwtFilter extends OncePerRequestFilter {
         String authorization = request.getHeader("Authorization");
 
         if(authorization == null) {
-            System.out.println("Request doesnt have 'Authorization'");
+            System.out.println("request doesnt have 'Authorization'");
             return null;
         }
 
         if(!authorization.startsWith("Bearer ")) {
-            System.out.println("Request doesnt have bearer token");
+            System.out.println("request doesnt have bearer token");
             return null;
         }
 
         // Bearer 부분 제거한 순수 Jwt 추출
-        // authorization.split("")[1];
-        return authorization.substring(7);
+        // return authorization.substring(7);
+        return authorization.split("")[1];
     }
 }
