@@ -1,6 +1,6 @@
 package v1.domain.service;
 
-import v1.domain.dto.JwtUserDetails;
+import v1.global.security.model.JwtUserDetails;
 import v1.domain.entity.User;
 import v1.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

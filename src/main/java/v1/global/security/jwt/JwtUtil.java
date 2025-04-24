@@ -1,4 +1,4 @@
-package v1.global.jwt;
+package v1.global.security.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
