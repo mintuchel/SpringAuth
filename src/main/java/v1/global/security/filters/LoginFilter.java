@@ -2,7 +2,6 @@ package v1.global.security.filters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletInputStream;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.util.StreamUtils;
 import v1.global.security.model.JwtUserDetails;
 import jakarta.servlet.FilterChain;
@@ -74,14 +73,14 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
             throw new RuntimeException(e);
         }
 
-        String username = loginDTO.getUsername();
+        String email = loginDTO.getEmail();
         String password = loginDTO.getPassword();
 
         System.out.println("login success");
-        System.out.println("username:" + username + " password:" + password);
+        System.out.println("email:" + email + " password:" + password);
 
         // 이 시점의 authToken.isAuthenticated() 는 false임
-        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(username, password, null);
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(email, password, null);
 
         // 이 함수 호출 흐름에서 내부적으로 UserDetailsService 와 PasswordEncoder를 써서 유저 검증을 하고
         // 인증된 객체를 새로 만들어서 리턴해줌

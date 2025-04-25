@@ -10,8 +10,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 /**
- * 필터 단에서 사용되는 Service
- * 필터 단에게 UserDetails 객체로 return 을 해줘야하기 때문에
+ * Filter 단에서 사용되는 Service
+ * Filter 단에게 UserDetails 객체로 return 을 해줘야하기 때문에
  * 내부적으로 실제 User 에 대한 정보가 있는 UserRepository 에서 User 를 조회한 뒤,
  * CustomUserDetails 객체 (UserDetails 구현체) 로 변환하여 return 해준다
  */
@@ -24,11 +24,10 @@ public class JwtUserDetailsService implements UserDetailsService {
     private final UserRepository userRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
         // User 객체 조회하기
-        User user = userRepository.findByUsername(username);
-
+        User user = userRepository.findByEmail(email);
         // UserDetails 객체로 반환
         if(user !=null){
             return new JwtUserDetails(user);

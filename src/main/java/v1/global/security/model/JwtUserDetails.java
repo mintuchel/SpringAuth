@@ -1,13 +1,12 @@
 package v1.global.security.model;
 
-import io.jsonwebtoken.Claims;
 import v1.domain.entity.User;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.UUID;
 
 /**
  * UserDetails Interface 를 구현
@@ -24,16 +23,21 @@ public class JwtUserDetails implements UserDetails {
         this.user = user;
     }
 
-    public JwtUserDetails(String username, String role){
+    public JwtUserDetails(String email, String username, String role){
         this.user = User.builder()
-                .username(username)
+                .email(email)
                 .password("1234")
+                .username(username)
                 .role(role)
                 .build();
     }
 
-    public int getId() {
+    public UUID getId() {
         return user.getId();
+    }
+
+    public String getEmail(){
+        return user.getEmail();
     }
 
     @Override

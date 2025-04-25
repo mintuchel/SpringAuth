@@ -16,7 +16,7 @@ import v1.global.security.jwt.JwtUtil;
 import java.io.IOException;
 
 /**
- * JwtFilter 는 기존 Jwt 를 검증하는 필터 → 로그인 이후의 요청을 처리
+ * JwtFilter 는 기존 Jwt 를 검증하는 필터
  * JWT 를 담아 보내는 Request 를 Spring Context 내부로 들어가기 전에
  * Servlet 단에서 낚아채 검증하기 위해 커스텀 필터를 생성한다
  * 이 필터는 Request 들을 낚아채서 Jwt 토큰 여부 및 유효성을 검증함
@@ -73,7 +73,7 @@ public class JwtFilter extends OncePerRequestFilter {
             // 다음 필터인 LoginFilter 로 진행
             filterChain.doFilter(request, response);
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Invalid JWT Token!");
+            response.getWriter().write("invalid token!");
             return;
         }else{
             System.out.println("token is not expired!");
@@ -81,7 +81,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         // Spring Security 는 UserDetails 타입의 객체를 사용해 인증을 처리함
         // Spring Security 에서 인증 객체를 만들려면 UserDetails 를 구현한 객체가 필요
-        JwtUserDetails jwtUserDetails = new JwtUserDetails(jwtUtil.getUsername(claims), jwtUtil.getRole(claims));
+        JwtUserDetails jwtUserDetails = new JwtUserDetails(jwtUtil.getEmail(claims), jwtUtil.getUsername(claims), jwtUtil.getRole(claims));
 
         // SecurityContext 에 저장할 Authentication 객체 생성
         // UsernamePasswordAuthenticationToken 은 Authentication 을 구현한 객체

@@ -24,13 +24,13 @@ public class JwtUtil {
     }
 
     // Jwt 생성
-    public String createJwt(String username, String role, Long expiredMs){
+    public String createJwt(String email, String username, Long expiredMs){
         return Jwts.builder()
 
                 // Payload 에 원하는 Claim 정보 넣기
                 // claim 은 디코딩이 언제나 가능하기 때문에 민감한 정보를 넣으면 안됨!
-                .claim("username",username)
-                .claim("role", role)
+                .claim("email", email)
+                .claim("username", username)
 
                 // Payload 에 발행시간 및 만료시간 추가
                 .issuedAt(new Date(System.currentTimeMillis()))
@@ -58,6 +58,9 @@ public class JwtUtil {
                 .getPayload();
     }
 
+    public String getEmail(Claims claims){
+        return claims.get("email", String.class);
+    }
 
     // Claim 에서 username 추출
     public String getUsername(Claims claims){
@@ -67,7 +70,7 @@ public class JwtUtil {
     public String getRole(Claims claims){
         return claims.get("role", String.class);
     }
-    
+
     // Claim 에서 만료기간 확인
     public Boolean isExpired(Claims claims){
         return claims.getExpiration().before(new Date());

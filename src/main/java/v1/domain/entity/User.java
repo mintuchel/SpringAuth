@@ -3,6 +3,8 @@ package v1.domain.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.UUID;
+
 @Entity
 @Getter
 @Builder
@@ -11,9 +13,10 @@ import lombok.*;
 @Table(name = "user_table")
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
+    private String email;
     private String username;
     private String password;
     private String role;
